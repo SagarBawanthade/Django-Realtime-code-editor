@@ -70,6 +70,7 @@ Before you begin, ensure you have the following installed:
 ## Support📞 
 
 - **Email**: sagar.bawanthade2004@gmail.com
+- **Email**: krishdsoni019@gmail.com
 
 
 
