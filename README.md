@@ -48,10 +48,78 @@ Before you begin, ensure you have the following installed:
 
 ## 🚀 Quick Start
 
-### Option 1: Local Development Setup
+### Prerequisites
+- Python 3.8+
+- pip (Python package manager)
+
+### How to Run the Project
 
 1. **Clone the repository**
-   - https://github.com/SagarBawanthade/Django-Realtime-code-editor.git
+   ```bash
+   git clone https://github.com/SagarBawanthade/Django-Realtime-code-editor.git
+   cd Django-Realtime-code-editor
+   ```
+
+2. **Create and activate a virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Run database migrations**
+   ```bash
+   python manage.py migrate
+   ```
+
+5. **Start the development server**
+   ```bash
+   python manage.py runserver
+   ```
+
+6. **Access the application**
+   - Open your browser and go to: `http://127.0.0.1:8000/`
+   - Admin panel: `http://127.0.0.1:8000/admin/`
+
+### 👤 Creating an Admin User
+
+To access the Django admin panel, you need to create a superuser account:
+
+1. **Make sure your virtual environment is activated and the server is stopped**
+   ```bash
+   # Stop the server if running (Ctrl+C)
+   # Ensure venv is activated
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. **Create a superuser**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+3. **Follow the prompts:**
+   - Enter a username (e.g., `admin`)
+   - Enter email address (optional, can be left blank)
+   - Enter password (you'll need to type it twice)
+
+4. **Login to admin panel**
+   - Start the server: `python manage.py runserver`
+   - Go to: `http://127.0.0.1:8000/admin/`
+   - Use the username and password you just created
+
+### ⚠️ Current Status
+**Note**: This project is currently in development. The repository contains a basic Django setup with the following structure:
+- Django project configuration ✅
+- Basic app structure ✅ 
+- Real-time code editor UI ⚠️ (Not implemented yet)
+- WebSocket functionality ⚠️ (Not implemented yet)
+- Collaborative features ⚠️ (Not implemented yet)
+
+The actual real-time code editor features described in this README are still under development.
 
 
 ## Contributing🤝 
@@ -67,10 +135,11 @@ Before you begin, ensure you have the following installed:
 - Update documentation
 - Use meaningful commit messages
 
-## Support📞 
+## Support📨
 
 - **Email**: sagar.bawanthade2004@gmail.com
 - **Email**: krishdsoni019@gmail.com
+- **Email**: shantanu.verulkar.01@gmail.com
 
 
 
