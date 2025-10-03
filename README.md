@@ -139,7 +139,7 @@ The actual real-time code editor features described in this README are still und
 
 - **Email**: sagar.bawanthade2004@gmail.com
 - **Email**: krishdsoni019@gmail.com
-- **Email**: shantanu.verulkar.01@gmail.com
+
 
 
 
