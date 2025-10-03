@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body>
+<textarea id="code-area"></textarea>
+<script>
+  const roomName = "demo";  // Might be dynamic in practice
+  const ws = new WebSocket('ws://' + window.location.host + '/ws/editor/' + roomName + '/');
+  const area = document.getElementById('code-area');
+
+  ws.onmessage = function(event) {
+      area.value = event.data;
+  };
+  area.oninput = function() {
+      ws.send(area.value);
+  };
+</script>
+</body>
+</html>
