@@ -2,59 +2,577 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Monaco Editor with WebSocket</title>
+  <title>Futuristic Code Editor</title>
   <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
-    #editor-container {
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      overflow: hidden;
+    }
+
+    /* Animated background particles */
+    .bg-particles {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .particle {
+      position: absolute;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 50%;
+      animation: float 20s infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      25% { transform: translateY(-30px) translateX(20px); }
+      50% { transform: translateY(-60px) translateX(-20px); }
+      75% { transform: translateY(-30px) translateX(20px); }
+    }
+
+    /* Main container */
+    .dashboard {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
       height: 100vh;
-      border: 1px solid #ccc;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(26, 31, 58, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 20px 30px;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      animation: slideDown 0.6s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .logo i {
+      color: #6366f1;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 8px;
+      color: #10b981;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .status.connected .status-dot {
+      background: #10b981;
+      animation: blink 2s infinite;
+    }
+
+    .status.disconnected {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    .status.disconnected .status-dot {
+      background: #ef4444;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .language-selector {
+      padding: 8px 16px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .language-selector:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #6366f1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      font-size: 16px;
+    }
+
+    .icon-btn:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: rgba(99, 102, 241, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Editor container */
+    .editor-wrapper {
+      flex: 1;
+      background: rgba(26, 31, 58, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .editor-header {
+      padding: 15px 25px;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .editor-tabs {
+      display: flex;
+      gap: 10px;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab.active {
+      background: rgba(99, 102, 241, 0.3);
+      border-color: rgba(99, 102, 241, 0.5);
+      color: #fff;
+    }
+
+    .tab:hover:not(.active) {
+      background: rgba(99, 102, 241, 0.15);
+    }
+
+    .editor-info {
+      display: flex;
+      gap: 20px;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .editor-info span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #editor-container {
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Footer */
+    .footer {
+      background: rgba(26, 31, 58, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 15px 30px;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .footer-info {
+      display: flex;
+      gap: 20px;
+      color: #94a3b8;
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+
+    .footer-info span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sync-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .sync-icon {
+      animation: rotate 2s linear infinite;
+    }
+
+    .sync-icon.synced {
+      animation: none;
+      color: #10b981;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .dashboard {
+        padding: 10px;
+        gap: 10px;
+      }
+
+      .header, .footer {
+        padding: 15px 20px;
+      }
+
+      .logo {
+        font-size: 20px;
+      }
+
+      .editor-info, .footer-info {
+        display: none;
+      }
+
+      .header-controls {
+        gap: 10px;
+      }
+    }
+
+    /* Loading animation */
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #6366f1;
+    }
+
+    .loading i {
+      font-size: 48px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <div id="editor-container"></div>
+  <!-- Background particles -->
+  <div class="bg-particles" id="particles"></div>
+
+  <!-- Main dashboard -->
+  <div class="dashboard">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <i class="fas fa-code"></i>
+        <span>CodeSync Pro</span>
+      </div>
+      
+      <div class="header-controls">
+        <div class="status connected" id="status">
+          <span class="status-dot"></span>
+          <span id="status-text">Connected</span>
+        </div>
+        
+        <select class="language-selector" id="language-selector">
+          <option value="javascript">JavaScript</option>
+          <option value="typescript">TypeScript</option>
+          <option value="python">Python</option>
+          <option value="java">Java</option>
+          <option value="cpp">C++</option>
+          <option value="csharp">C#</option>
+          <option value="html">HTML</option>
+          <option value="css">CSS</option>
+          <option value="json">JSON</option>
+          <option value="markdown">Markdown</option>
+        </select>
+        
+        <button class="icon-btn" title="Download" id="download-btn">
+          <i class="fas fa-download"></i>
+        </button>
+        
+        <button class="icon-btn" title="Settings" id="settings-btn">
+          <i class="fas fa-cog"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Editor wrapper -->
+    <div class="editor-wrapper">
+      <div class="editor-header">
+        <div class="editor-tabs">
+          <div class="tab active">
+            <i class="fas fa-file-code"></i>
+            <span>main.js</span>
+          </div>
+        </div>
+        
+        <div class="editor-info">
+          <span><i class="fas fa-users"></i> 1 active</span>
+          <span><i class="fas fa-clock"></i> Auto-save</span>
+        </div>
+      </div>
+      
+      <div id="editor-container">
+        <div class="loading" id="loading">
+          <i class="fas fa-spinner"></i>
+          <p>Loading editor...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-info">
+        <span><i class="fas fa-server"></i> Room: <strong>demo</strong></span>
+        <span><i class="fas fa-code-branch"></i> UTF-8</span>
+        <span id="char-count"><i class="fas fa-text-height"></i> 0 characters</span>
+        <span id="line-count"><i class="fas fa-align-left"></i> 1 line</span>
+      </div>
+      
+      <div class="sync-indicator">
+        <i class="fas fa-sync-alt sync-icon synced" id="sync-icon"></i>
+        <span id="sync-text">All changes saved</span>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
   <script>
-    const roomName = "demo";  // Might be dynamic in practice
-    const ws = new WebSocket('ws://' + window.location.host + '/ws/editor/' + roomName + '/');
+    // Create animated background particles
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const size = Math.random() * 100 + 50;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+        particlesContainer.appendChild(particle);
+      }
+    }
+    createParticles();
+
+    const roomName = "demo";
+    let ws;
+    let reconnectInterval;
+
+    function connectWebSocket() {
+      ws = new WebSocket('ws://' + window.location.host + '/ws/editor/' + roomName + '/');
+      
+      ws.onopen = function() {
+        updateStatus(true);
+        clearInterval(reconnectInterval);
+      };
+
+      ws.onerror = function() {
+        updateStatus(false);
+      };
+
+      ws.onclose = function() {
+        updateStatus(false);
+        reconnectInterval = setInterval(connectWebSocket, 3000);
+      };
+
+      return ws;
+    }
+
+    function updateStatus(connected) {
+      const status = document.getElementById('status');
+      const statusText = document.getElementById('status-text');
+      
+      if (connected) {
+        status.classList.remove('disconnected');
+        status.classList.add('connected');
+        statusText.textContent = 'Connected';
+      } else {
+        status.classList.remove('connected');
+        status.classList.add('disconnected');
+        statusText.textContent = 'Disconnected';
+      }
+    }
+
+    connectWebSocket();
     
     // Configure Monaco Editor loader
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs' }});
     
     // Load Monaco Editor
     require(["vs/editor/editor.main"], function () {
-      // Create Monaco Editor instance
+      document.getElementById('loading').style.display = 'none';
+      
       const editor = monaco.editor.create(document.getElementById('editor-container'), {
         value: '',
-        language: 'javascript',  // Change to your preferred language
-        theme: 'vs-dark',  // Options: 'vs', 'vs-dark', 'hc-black'
-        automaticLayout: true
+        language: 'javascript',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        fontSize: 14,
+        minimap: { enabled: true },
+        scrollBeyondLastLine: false,
+        roundedSelection: false,
+        padding: { top: 20, bottom: 20 }
       });
 
-      let isRemoteUpdate = false;  // Flag to prevent echo when receiving remote updates
+      let isRemoteUpdate = false;
+      let syncTimeout;
+
+      // Update stats
+      function updateStats() {
+        const content = editor.getValue();
+        const lines = editor.getModel().getLineCount();
+        document.getElementById('char-count').innerHTML = 
+          `<i class="fas fa-text-height"></i> ${content.length} characters`;
+        document.getElementById('line-count').innerHTML = 
+          `<i class="fas fa-align-left"></i> ${lines} ${lines === 1 ? 'line' : 'lines'}`;
+      }
+
+      // Show sync animation
+      function showSyncing() {
+        const syncIcon = document.getElementById('sync-icon');
+        const syncText = document.getElementById('sync-text');
+        syncIcon.classList.remove('synced');
+        syncText.textContent = 'Syncing...';
+        
+        clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(() => {
+          syncIcon.classList.add('synced');
+          syncText.textContent = 'All changes saved';
+        }, 500);
+      }
 
       // Handle incoming WebSocket messages
       ws.onmessage = function(event) {
         const incomingContent = event.data;
         const currentContent = editor.getValue();
         
-        // Only update if the content is different to avoid cursor jump
         if (incomingContent !== currentContent) {
           isRemoteUpdate = true;
-          
-          // Save current cursor position
           const position = editor.getPosition();
-          
-          // Update the content
           editor.getModel().setValue(incomingContent);
           
-          // Restore cursor position if it's still valid
           if (position) {
             const lineCount = editor.getModel().getLineCount();
             if (position.lineNumber <= lineCount) {
@@ -63,15 +581,43 @@
           }
           
           isRemoteUpdate = false;
+          updateStats();
+          showSyncing();
         }
       };
 
       // Handle editor content changes
       editor.onDidChangeModelContent(function() {
-        if (!isRemoteUpdate) {
+        updateStats();
+        if (!isRemoteUpdate && ws.readyState === WebSocket.OPEN) {
           ws.send(editor.getValue());
+          showSyncing();
         }
       });
+
+      // Language selector
+      document.getElementById('language-selector').addEventListener('change', function(e) {
+        monaco.editor.setModelLanguage(editor.getModel(), e.target.value);
+      });
+
+      // Download button
+      document.getElementById('download-btn').addEventListener('click', function() {
+        const content = editor.getValue();
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'code.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // Settings button (placeholder)
+      document.getElementById('settings-btn').addEventListener('click', function() {
+        alert('Settings panel coming soon!');
+      });
+
+      updateStats();
     });
   </script>
 </body>
