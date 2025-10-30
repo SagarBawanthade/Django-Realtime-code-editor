@@ -1,18 +1,78 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <meta charset="utf-8">
+  <title>Monaco Editor with WebSocket</title>
+  <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.min.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    #editor-container {
+      width: 100%;
+      height: 100vh;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
 <body>
-<textarea id="code-area"></textarea>
-<script>
-  const roomName = "demo";  // Might be dynamic in practice
-  const ws = new WebSocket('ws://' + window.location.host + '/ws/editor/' + roomName + '/');
-  const area = document.getElementById('code-area');
+  <div id="editor-container"></div>
 
-  ws.onmessage = function(event) {
-      area.value = event.data;
-  };
-  area.oninput = function() {
-      ws.send(area.value);
-  };
-</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
+  <script>
+    const roomName = "demo";  // Might be dynamic in practice
+    const ws = new WebSocket('ws://' + window.location.host + '/ws/editor/' + roomName + '/');
+    
+    // Configure Monaco Editor loader
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs' }});
+    
+    // Load Monaco Editor
+    require(["vs/editor/editor.main"], function () {
+      // Create Monaco Editor instance
+      const editor = monaco.editor.create(document.getElementById('editor-container'), {
+        value: '',
+        language: 'javascript',  // Change to your preferred language
+        theme: 'vs-dark',  // Options: 'vs', 'vs-dark', 'hc-black'
+        automaticLayout: true
+      });
+
+      let isRemoteUpdate = false;  // Flag to prevent echo when receiving remote updates
+
+      // Handle incoming WebSocket messages
+      ws.onmessage = function(event) {
+        const incomingContent = event.data;
+        const currentContent = editor.getValue();
+        
+        // Only update if the content is different to avoid cursor jump
+        if (incomingContent !== currentContent) {
+          isRemoteUpdate = true;
+          
+          // Save current cursor position
+          const position = editor.getPosition();
+          
+          // Update the content
+          editor.getModel().setValue(incomingContent);
+          
+          // Restore cursor position if it's still valid
+          if (position) {
+            const lineCount = editor.getModel().getLineCount();
+            if (position.lineNumber <= lineCount) {
+              editor.setPosition(position);
+            }
+          }
+          
+          isRemoteUpdate = false;
+        }
+      };
+
+      // Handle editor content changes
+      editor.onDidChangeModelContent(function() {
+        if (!isRemoteUpdate) {
+          ws.send(editor.getValue());
+        }
+      });
+    });
+  </script>
 </body>
 </html>
