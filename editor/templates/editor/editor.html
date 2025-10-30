@@ -2,9 +2,10 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Futuristic Code Editor</title>
+  <title>Real-Time Code Editor</title>
   <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
     * {
       margin: 0;
@@ -218,6 +219,21 @@
       justify-content: space-between;
       align-items: center;
     }
+    .user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(234, 234, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: #fff;
+  font-size: 14px;
+}
+.user-info i {
+  color: #6366f1;
+}
+
 
     .editor-tabs {
       display: flex;
@@ -384,7 +400,7 @@
     <div class="header">
       <div class="logo">
         <i class="fas fa-code"></i>
-        <span>CodeSync Pro</span>
+        <span>Real-Time Code Editor/span>
       </div>
       
       <div class="header-controls">
@@ -413,6 +429,15 @@
         <button class="icon-btn" title="Settings" id="settings-btn">
           <i class="fas fa-cog"></i>
         </button>
+
+
+        <div class="user-info">
+  <i class="fas fa-user"></i>
+  <span>{{ username }}</span>
+</div>
+
+
+
       </div>
     </div>
 
@@ -476,12 +501,15 @@
     }
     createParticles();
 
-    const roomName = "demo";
-    let ws;
+    const roomName = "{{ room_name|default:'demo' }}";
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  // let ws = new WebSocket(wsProtocol + '://' + window.location.host + '/ws/editor/' + roomName + '/');
+  // // rest unchanged...
+  let ws;
     let reconnectInterval;
 
     function connectWebSocket() {
-      ws = new WebSocket('ws://' + window.location.host + '/ws/editor/' + roomName + '/');
+        ws = new WebSocket(wsProtocol + '://' + window.location.host + '/ws/editor/' + roomName + '/');
       
       ws.onopen = function() {
         updateStatus(true);

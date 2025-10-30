@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
+     "editor",
 ]
 
 ASGI_APPLICATION = 'demo.asgi.application' 
@@ -49,6 +50,11 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',  
     },
 }
+
+# Login redirect and login url
+LOGIN_URL = "/auth/login/"
+LOGIN_REDIRECT_URL = "/editor/"
+LOGOUT_REDIRECT_URL = "/auth/login/"
 
 
 MIDDLEWARE = [
