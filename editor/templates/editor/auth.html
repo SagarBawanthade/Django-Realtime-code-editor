@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>CodeSync Pro - Authentication</title>
+  <title>Real-Time Code Editor</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * {
@@ -311,6 +311,7 @@
       text-align: center;
       color: #94a3b8;
       font-size: 14px;
+     
     }
 
     .auth-switch a {
@@ -388,7 +389,7 @@
     <div class="logo-section">
       <div class="logo">
         <i class="fas fa-code"></i>
-        <span>CodeSync Pro</span>
+        <span>Real-Time Code Editor</span>
       </div>
       <p class="logo-tagline">Collaborative coding in real-time</p>
     </div>
@@ -424,10 +425,7 @@
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <div class="checkbox-wrapper" style="margin-bottom: 0;">
-            <input type="checkbox" class="checkbox-input" id="remember-me" name="remember">
-            <label class="checkbox-label" for="remember-me">Remember me</label>
-          </div>
+          
           <div class="forgot-password" style="margin-bottom: 0;">
             <a href="#">Forgot password?</a>
           </div>
@@ -439,18 +437,6 @@
         </button>
       </form>
 
-      <div class="divider">or continue with</div>
-
-      <div class="social-buttons">
-        <button class="social-btn">
-          <i class="fab fa-github"></i>
-          <span>GitHub</span>
-        </button>
-        <button class="social-btn">
-          <i class="fab fa-google"></i>
-          <span>Google</span>
-        </button>
-      </div>
 
       <div class="auth-switch">
         Don't have an account? <a href="#" id="show-signup">Sign up</a>
@@ -512,12 +498,7 @@
           </div>
         </div>
 
-        <div class="checkbox-wrapper">
-          <input type="checkbox" class="checkbox-input" id="terms" name="terms" required>
-          <label class="checkbox-label" for="terms">
-            I agree to the <a href="#" style="color: #6366f1; text-decoration: none;">Terms & Conditions</a>
-          </label>
-        </div>
+
 
         <button type="submit" class="submit-btn">
           <span>Create Account</span>
@@ -525,7 +506,7 @@
         </button>
       </form>
 
-      <div class="divider">or sign up with</div>
+      {% comment %} <div class="divider">or sign up with</div>
 
       <div class="social-buttons">
         <button class="social-btn">
@@ -536,7 +517,7 @@
           <i class="fab fa-google"></i>
           <span>Google</span>
         </button>
-      </div>
+      </div> {% endcomment %}
 
       <div class="auth-switch">
         Already have an account? <a href="#" id="show-login">Sign in</a>
