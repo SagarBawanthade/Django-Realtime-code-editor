@@ -323,6 +323,13 @@
       gap: 6px;
     }
 
+
+    #logout-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
     .sync-indicator {
       display: flex;
       align-items: center;
@@ -400,7 +407,7 @@
     <div class="header">
       <div class="logo">
         <i class="fas fa-code"></i>
-        <span>Real-Time Code Editor/span>
+        <span>Real-Time Code Editor</span>
       </div>
       
       <div class="header-controls">
@@ -429,6 +436,10 @@
         <button class="icon-btn" title="Settings" id="settings-btn">
           <i class="fas fa-cog"></i>
         </button>
+
+        <button class="icon-btn" title="Logout" id="logout-btn">
+  <i class="fas fa-sign-out-alt"></i>
+</button>
 
 
         <div class="user-info">
@@ -483,6 +494,30 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
   <script>
+
+    // Logout button
+document.getElementById('logout-btn').addEventListener('click', function() {
+  if (confirm('Are you sure you want to logout?')) {
+    fetch('/api/logout/', {
+      method: 'GET',
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (response.redirected) {
+        window.location.href = response.url;
+      } else {
+        alert('Logged out successfully.');
+        window.location.href = '/auth/login/';
+      }
+    })
+    .catch(err => {
+      console.error('Logout error:', err);
+      alert('Something went wrong while logging out.');
+    });
+  }
+});
+
+
     // Create animated background particles
     function createParticles() {
       const particlesContainer = document.getElementById('particles');
