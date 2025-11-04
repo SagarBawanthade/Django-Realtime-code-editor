@@ -395,9 +395,151 @@
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
+
+    /*DIalog Box for logout*/
+
+    /* Logout Dialog Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.show {
+  display: flex;
+}
+
+.modal-dialog {
+  background: linear-gradient(135deg, rgba(26, 31, 58, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.modal-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #ef4444;
+}
+
+.modal-title {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.modal-message {
+  color: #94a3b8;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid;
+  outline: none;
+}
+
+.modal-btn-no {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #6366f1;
+}
+
+.modal-btn-no:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+}
+
+.modal-btn-yes {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+.modal-btn-yes:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.6);
+  transform: translateY(-1px);
+}
+
+
   </style>
 </head>
 <body>
+
+
+  <!-- Logout Confirmation Modal -->
+<div class="modal-overlay" id="logoutModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <i class="fas fa-sign-out-alt"></i>
+      </div>
+      <div class="modal-title">Confirm Logout</div>
+    </div>
+    <div class="modal-message">
+      Are you sure you want to logout? Any unsaved changes will be lost.
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn modal-btn-no" id="modalNoBtn">No</button>
+      <button class="modal-btn modal-btn-yes" id="modalYesBtn">Yes, Logout</button>
+    </div>
+  </div>
+</div>
+
+
   <!-- Background particles -->
   <div class="bg-particles" id="particles"></div>
 
@@ -415,7 +557,7 @@
           <span class="status-dot"></span>
           <span id="status-text">Connected</span>
         </div>
-        
+<!--         
         <select class="language-selector" id="language-selector">
           <option value="javascript">JavaScript</option>
           <option value="typescript">TypeScript</option>
@@ -435,17 +577,19 @@
         
         <button class="icon-btn" title="Settings" id="settings-btn">
           <i class="fas fa-cog"></i>
-        </button>
+        </button> -->
+
+         <div class="user-info">
+  <i class="fas fa-user"></i>
+  <span>{{ username }}</span>
+</div>
 
         <button class="icon-btn" title="Logout" id="logout-btn">
   <i class="fas fa-sign-out-alt"></i>
 </button>
 
 
-        <div class="user-info">
-  <i class="fas fa-user"></i>
-  <span>{{ username }}</span>
-</div>
+       
 
 
 
@@ -495,26 +639,49 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
   <script>
 
-    // Logout button
-document.getElementById('logout-btn').addEventListener('click', function() {
-  if (confirm('Are you sure you want to logout?')) {
-    fetch('/api/logout/', {
-      method: 'GET',
-      credentials: 'same-origin'
-    })
-    .then(response => {
-      if (response.redirected) {
-        window.location.href = response.url;
-      } else {
-        alert('Logged out successfully.');
-        window.location.href = '/auth/login/';
-      }
-    })
-    .catch(err => {
-      console.error('Logout error:', err);
-      alert('Something went wrong while logging out.');
-    });
+
+// Logout Modal Logic
+const logoutModal = document.getElementById('logoutModal');
+const logoutBtn = document.getElementById('logout-btn');
+const modalYesBtn = document.getElementById('modalYesBtn');
+const modalNoBtn = document.getElementById('modalNoBtn');
+
+// Show modal when logout button clicked
+logoutBtn.addEventListener('click', function() {
+  logoutModal.classList.add('show');
+});
+
+// Hide modal when No button clicked
+modalNoBtn.addEventListener('click', function() {
+  logoutModal.classList.remove('show');
+});
+
+// Close modal when clicking outside
+logoutModal.addEventListener('click', function(e) {
+  if (e.target === logoutModal) {
+    logoutModal.classList.remove('show');
   }
+});
+
+// Handle actual logout when Yes button clicked
+modalYesBtn.addEventListener('click', function() {
+  logoutModal.classList.remove('show');
+  
+  fetch('/api/logout/', {
+    method: 'GET',
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (response.redirected) {
+      window.location.href = response.url;
+    } else {
+      window.location.href = '/auth/login/';
+    }
+  })
+  .catch(err => {
+    console.error('Logout error:', err);
+    alert('Something went wrong while logging out.');
+  });
 });
 
 
