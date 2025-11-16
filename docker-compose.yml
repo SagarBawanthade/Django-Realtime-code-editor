@@ -5,5 +5,5 @@ services:
     image: sagarbawanthade/django-realtime-code-editor:latest
     container_name: django_realtime_editor
     ports:
-      - "8000:8000"
+      - "8082:8082"
     restart: always
