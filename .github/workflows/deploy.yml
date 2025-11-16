@@ -39,3 +39,4 @@ jobs:
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/django-realtime-code-editor:latest
           docker compose down
           docker compose up -d --build
+          
