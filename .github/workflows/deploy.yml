@@ -36,7 +36,16 @@ jobs:
         script: |
           cd /home/sagar/Django-Realtime-code-editor/
           git pull
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/django-realtime-code-editor:latest
-          docker compose down
-          docker compose up -d --build
           
+          # Pull newest image
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/django-realtime-code-editor:latest
+          
+          # Stop and remove any existing container using port 8000
+          docker stop django_realtime_editor || true
+          docker rm django_realtime_editor || true
+
+          # Shut down old compose stack (if running)
+          docker compose down
+
+          # Start new containers
+          docker compose up -d --build
