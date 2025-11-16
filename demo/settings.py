@@ -28,7 +28,11 @@ SECRET_KEY = 'django-insecure-e9h=cxz&p(run(5t(bri04b&++a+#9^@-d&*9zj41@_4@q8kx8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "realtime-code-editor.kodesesh.cloud",
+]
 
 
 # Application definition
