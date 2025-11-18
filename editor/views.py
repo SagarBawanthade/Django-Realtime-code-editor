@@ -7,7 +7,65 @@ from .models import UserFile
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+@login_required
+def account_page(request):
+    """Display user account details"""
+    user = request.user
+    
+    # Get total files and code statistics
+    user_files = UserFile.objects.filter(user=user)
+    total_files = user_files.count()
+    total_characters = sum(len(f.code or "") for f in user_files)
+    
+    # ✅ CALCULATE AVERAGE IN BACKEND (FIX FOR DIV ERROR)
+    avg_file_size = total_characters / total_files if total_files > 0 else 0
+    
+    context = {
+        "username": user.username,
+        "email": user.email or "Not set",
+        "date_joined": user.date_joined,
+        "last_login": user.last_login,
+        "total_files": total_files,
+        "total_characters": total_characters,
+        "avg_file_size": avg_file_size,  # ✅ ADD THIS
+    }
+    
+    return render(request, "editor/account.html", context)
 
+
+# ✅ NEW: UPDATE EMAIL API
+@login_required
+@csrf_exempt
+def update_email(request):
+    """Update user email"""
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+        new_email = data.get("email", "").strip()
+        
+        if not new_email:
+            return JsonResponse({"error": "Email cannot be empty"}, status=400)
+        
+        # Check if email is already taken by another user
+        if User.objects.filter(email=new_email).exclude(id=request.user.id).exists():
+            return JsonResponse({"error": "Email already in use"}, status=400)
+        
+        request.user.email = new_email
+        request.user.save()
+        
+        return JsonResponse({
+            "success": True,
+            "message": "Email updated successfully!",
+            "email": new_email
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        print(f"Update email error: {e}")
+        return JsonResponse({"error": "Server error"}, status=500)
 
 
 

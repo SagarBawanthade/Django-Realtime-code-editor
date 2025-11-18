@@ -593,6 +593,11 @@
           <span>{{ username }}</span>
         </div>
 
+        <!-- ✅ ADD THIS: Account Button -->
+  <a href="{% url 'editor:account' %}" class="icon-btn" title="Account Settings">
+    <i class="fas fa-user-cog"></i>
+  </a>
+
         <button class="icon-btn" title="Logout" id="logout-btn">
           <i class="fas fa-sign-out-alt"></i>
         </button>

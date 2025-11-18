@@ -12,7 +12,9 @@ urlpatterns = [
       # New
     path("api/save_code/", views.save_code, name="save_code"),
     path("api/load_code/", views.load_code, name="load_code"),    
-    # path("api/run_code/", views.run_code, name="run_code"),
+
+    path("account/", views.account_page, name="account"),
+    path("api/update_email/", views.update_email, name="update_email"),
 
     path("", views.editor_page, name="editor"),  # /editor/
     path("<str:room_name>/", views.editor_page, name="editor_room"),
