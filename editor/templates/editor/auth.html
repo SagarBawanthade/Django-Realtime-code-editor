@@ -380,6 +380,22 @@
   </style>
 </head>
 <body>
+
+  <div id="popup" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #10b981;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 8px;
+  display: none;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 9999;
+  transition: all .3s ease;
+">Success</div>
+
   <!-- Background particles -->
   <div class="bg-particles" id="particles"></div>
 
@@ -526,6 +542,20 @@
   </div>
 
   <script>
+
+    function showPopup(message) {
+  const popup = document.getElementById('popup');
+  popup.textContent = message;
+  popup.style.display = 'block';
+
+  setTimeout(() => {
+    popup.style.display = 'none';
+  }, 1800);
+}
+
+
+
+
     // Create animated background particles
     function createParticles() {
       const particlesContainer = document.getElementById('particles');
@@ -602,6 +632,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   btn.querySelector('i').className = 'fas fa-arrow-right';
 
   if (res.ok) {
+    showPopup('Logged in successfully!');
+
     const data = await res.json();
     window.location.href = data.redirect || '/editor/';
   } else {
@@ -643,6 +675,8 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
   btn.querySelector('i').className = 'fas fa-arrow-right';
 
   if (res.ok) {
+    showPopup('Account created successfully!');
+
     const data = await res.json();
     window.location.href = data.redirect || '/editor/';
   } else {
