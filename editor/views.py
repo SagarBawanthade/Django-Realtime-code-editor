@@ -3,10 +3,19 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponseBadRequest
+from .models import UserFile
 from django.views.decorators.csrf import csrf_exempt
+import json
+
+
+
+
+
+
+
+
 
 def auth_page(request):
-    # Return your auth.html file (signup/login)
     return render(request, "editor/auth.html")
 
 @csrf_exempt
@@ -37,7 +46,6 @@ def api_signup(request):
 
         User.objects.create_user(username=username, password=password)
 
-        # ✅ No login here — just show success popup on frontend
         return JsonResponse({
             "success": True,
             "message": "Signup successful! Redirecting to login...",
@@ -56,3 +64,76 @@ def editor_page(request, room_name="demo"):
         "room_name": room_name,
         "username": request.user.username
     })
+
+@login_required
+@csrf_exempt
+def save_code(request):
+    """Save user's code to database"""
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+        code = data.get("code", "")
+        filename = data.get("filename", "main.js")
+
+        # Validate inputs
+        if not filename:
+            return JsonResponse({"error": "Filename required"}, status=400)
+
+        # Get or create the file for this user
+        user_file, created = UserFile.objects.get_or_create(
+            user=request.user,
+            filename=filename,
+            defaults={'code': code}
+        )
+        
+        # If file already exists, update it
+        if not created:
+            user_file.code = code
+            user_file.save()
+
+        return JsonResponse({
+            "status": "ok",
+            "saved_at": user_file.updated_at.isoformat(),
+            "created": created
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        print(f"Save error: {e}")
+        return JsonResponse({"error": "Server error"}, status=500)
+
+
+@login_required
+def load_code(request):
+    """Load user's code from database"""
+    try:
+        filename = request.GET.get("filename", "main.js")
+        
+        # Try to get existing file
+        try:
+            user_file = UserFile.objects.get(
+                user=request.user,
+                filename=filename
+            )
+            return JsonResponse({
+                "code": user_file.code or "",
+                "last_updated": user_file.updated_at.isoformat()
+            })
+        except UserFile.DoesNotExist:
+            # Create new empty file
+            user_file = UserFile.objects.create(
+                user=request.user,
+                filename=filename,
+                code=""
+            )
+            return JsonResponse({
+                "code": "",
+                "last_updated": user_file.updated_at.isoformat()
+            })
+
+    except Exception as e:
+        print(f"Load error: {e}")
+        return JsonResponse({"error": "Server error", "code": ""}, status=500)
