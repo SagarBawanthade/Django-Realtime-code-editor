@@ -507,6 +507,20 @@
   border-color: rgba(239, 68, 68, 0.4);
   color: #ef4444;
 }
+.remote-cursor {
+    position: absolute;
+    border-left: 3px solid #6366f1 !important;
+    z-index: 50;
+    pointer-events: none;
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+    animation: cursorBlink 1.5s ease-in-out infinite;
+}
+
+@keyframes cursorBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
 
 .modal-btn-yes:hover {
   background: rgba(239, 68, 68, 0.25);
@@ -897,32 +911,125 @@ const csrftoken = getCookie('csrftoken');
     let isRemoteUpdate = false;
 
     ws.onmessage = function(event) {
-      const incomingContent = event.data;
+    const data = JSON.parse(event.data);
 
-      // Ignore empty WebSocket messages
-      if (!incomingContent || incomingContent.trim() === "") {
-        console.log("Ignored empty WS message");
-        return;
-      }
+    // Handle text content updates (REAL-TIME SYNC)
+    if (data.text !== undefined) {
+        const incomingContent = data.text;
 
-      const currentContent = editor.getValue();
+        // Ignore if same as current content
+        if (incomingContent === editor.getValue()) {
+            return;
+        }
 
-      if (incomingContent !== currentContent) {
+        // Update editor with remote changes
         isRemoteUpdate = true;
-
         const position = editor.getPosition();
         editor.getModel().setValue(incomingContent);
-
         if (position) editor.setPosition(position);
-
         isRemoteUpdate = false;
-        updateStats();
         
-        // Save remote changes to database
+        // Update stats and save
+        updateStats();
         lastSavedContent = incomingContent;
         saveUserCode(true);
-      }
-    };
+    }
+
+    // Handle cursor updates (SHOW WHO'S TYPING)
+    if (data.cursor && data.username && data.username !== "{{ username }}") {
+        showRemoteCursor(data.cursor, data.username);
+    }
+
+
+};
+
+// Utility to show a cursor and label
+function showRemoteCursor(cursor, username) {
+    // Remove previous decoration
+    if (window.remoteCursorDecoration) {
+        editor.deltaDecorations(window.remoteCursorDecoration, []);
+    }
+    // Create a new decoration
+    window.remoteCursorDecoration = editor.deltaDecorations([], [
+        {
+            range: new monaco.Range(cursor.lineNumber, cursor.column, cursor.lineNumber, cursor.column),
+            options: {
+                className: 'remote-cursor',
+                hoverMessage: { value: `${username} is typing…` },
+                afterContentClassName: 'remote-cursor-label-' + username.replace(/\W/g,""),
+            }
+        }
+    ]);
+    const css = `
+    .monaco-editor .remote-cursor-label-${username.replace(/\W/g,"")}::after {
+        content: "${username}";
+        position: absolute;
+        left: 5px;
+        top: -22px;
+        color: #fff;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        z-index: 90;
+        opacity: 0.95;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        white-space: nowrap;
+        animation: labelFadeIn 0.3s ease-out;
+    }
+    
+    @keyframes labelFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+        to {
+            opacity: 0.95;
+            transform: translateY(0);
+        }
+    }
+    `;
+
+    // Remove old style tag if exists
+    let styleTag = document.getElementById('remote-cursor-style-' + username.replace(/\W/g,""));
+    if (styleTag) styleTag.remove();
+    styleTag = document.createElement('style');
+    styleTag.id = 'remote-cursor-style-' + username.replace(/\W/g,"");
+    styleTag.textContent = css;
+    document.head.appendChild(styleTag);
+
+    // Optionally, show a floating "is typing" message on the page
+    // (or update your UI elsewhere if desired)
+}
+
+    // ws.onmessage = function(event) {
+    //   const incomingContent = event.data;
+
+    //   // Ignore empty WebSocket messages
+    //   if (!incomingContent || incomingContent.trim() === "") {
+    //     console.log("Ignored empty WS message");
+    //     return;
+    //   }
+
+    //   const currentContent = editor.getValue();
+
+    //   if (incomingContent !== currentContent) {
+    //     isRemoteUpdate = true;
+
+    //     const position = editor.getPosition();
+    //     editor.getModel().setValue(incomingContent);
+
+    //     if (position) editor.setPosition(position);
+
+    //     isRemoteUpdate = false;
+    //     updateStats();
+        
+    //     // Save remote changes to database
+    //     lastSavedContent = incomingContent;
+    //     saveUserCode(true);
+    //   }
+    // };
 
     // HANDLE EDITOR CONTENT CHANGES
     editor.onDidChangeModelContent(function() {
@@ -933,13 +1040,18 @@ const csrftoken = getCookie('csrftoken');
         return;
       }
 
-      // Send to WebSocket for real-time collaboration
       if (ws.readyState === WebSocket.OPEN) {
-        const content = editor.getValue();
-        if (content || content === "") { // Allow sending empty content via WS
-          ws.send(content);
-        }
-      }
+    const content = editor.getValue();
+
+    // Get cursor position
+    const position = editor.getPosition();
+    ws.send(JSON.stringify({
+        text: content,
+        cursor: position, // {lineNumber, column}
+        username: "{{ username }}", // Fill this from Django context
+    }));
+}
+
 
       // Schedule auto-save
       scheduleAutoSave();
