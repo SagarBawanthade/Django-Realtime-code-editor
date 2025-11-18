@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Real-Time Code Editor</title>
+  <title>Real-Time Collaborative Code Editor</title>
   <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -69,14 +69,8 @@
     }
 
     @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .logo {
@@ -144,7 +138,6 @@
       50% { opacity: 0.4; }
     }
 
-    /* ✅ LANGUAGE SELECTOR STYLES */
     .language-selector {
       padding: 8px 16px;
       background: rgba(99, 102, 241, 0.1);
@@ -227,14 +220,8 @@
     }
 
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     .editor-header {
@@ -269,10 +256,6 @@
       background: rgba(99, 102, 241, 0.3);
       border-color: rgba(99, 102, 241, 0.5);
       color: #fff;
-    }
-
-    .tab:hover:not(.active) {
-      background: rgba(99, 102, 241, 0.15);
     }
 
     .editor-info {
@@ -350,6 +333,30 @@
       color: #10b981;
     }
 
+    /* ✅ NOTIFICATION TOAST */
+    .notification-toast {
+      position: fixed;
+      top: 100px;
+      right: 30px;
+      background: rgba(99, 102, 241, 0.95);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 2000;
+      display: none;
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .notification-toast.show {
+      display: block;
+    }
+
     .footer {
       background: rgba(26, 31, 58, 0.8);
       backdrop-filter: blur(10px);
@@ -366,14 +373,8 @@
     }
 
     @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .footer-info {
@@ -438,7 +439,6 @@
       z-index: 1000;
       align-items: center;
       justify-content: center;
-      animation: fadeIn 0.3s ease;
     }
 
     .modal-overlay.show {
@@ -453,18 +453,6 @@
       max-width: 400px;
       width: 90%;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
     }
 
     .modal-header {
@@ -541,45 +529,18 @@
       transform: translateY(-1px);
     }
 
-    .remote-cursor {
-      position: absolute;
-      border-left: 3px solid #6366f1 !important;
-      z-index: 50;
-      pointer-events: none;
-      box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
-      animation: cursorBlink 1.5s ease-in-out infinite;
-    }
-
-    @keyframes cursorBlink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
-
     @media (max-width: 768px) {
-      .dashboard {
-        padding: 10px;
-        gap: 10px;
-      }
-
-      .header, .footer {
-        padding: 15px 20px;
-      }
-
-      .logo {
-        font-size: 20px;
-      }
-
-      .editor-info, .footer-info {
-        display: none;
-      }
-
-      .header-controls {
-        gap: 10px;
-      }
+      .dashboard { padding: 10px; gap: 10px; }
+      .header, .footer { padding: 15px 20px; }
+      .logo { font-size: 20px; }
+      .editor-info, .footer-info { display: none; }
     }
   </style>
 </head>
 <body>
+  <!-- Notification Toast -->
+  <div class="notification-toast" id="notification-toast"></div>
+
   <div class="modal-overlay" id="logoutModal">
     <div class="modal-dialog">
       <div class="modal-header">
@@ -613,7 +574,6 @@
           <span id="status-text">Connected</span>
         </div>
 
-        <!-- ✅ LANGUAGE SELECTOR ADDED -->
         <select class="language-selector" id="language-selector">
           <option value="javascript">JavaScript</option>
           <option value="python">Python</option>
@@ -626,13 +586,6 @@
           <option value="ruby">Ruby</option>
           <option value="go">Go</option>
           <option value="rust">Rust</option>
-          <option value="kotlin">Kotlin</option>
-          <option value="swift">Swift</option>
-          <option value="r">R</option>
-          <option value="perl">Perl</option>
-          <option value="lua">Lua</option>
-          <option value="sql">SQL</option>
-          <option value="bash">Bash</option>
         </select>
 
         <div class="user-info">
@@ -649,7 +602,6 @@
     <div class="editor-wrapper">
       <div class="editor-header">
         <div class="editor-tabs">
-          <!-- ✅ TAB WITH DYNAMIC FILE NAME -->
           <div class="tab active" id="file-tab">
             <i class="fas fa-file-code"></i>
             <span id="file-name">main.js</span>
@@ -657,7 +609,7 @@
         </div>
         
         <div class="editor-info">
-          <span><i class="fas fa-users"></i> 1 active</span>
+          <span><i class="fas fa-users"></i> <span id="active-users">1</span> active</span>
           <span><i class="fas fa-clock"></i> Auto-save</span>
         </div>
 
@@ -688,7 +640,7 @@
 
     <div class="footer">
       <div class="footer-info">
-        <span><i class="fas fa-server"></i> Room: <strong>demo</strong></span>
+        <span><i class="fas fa-server"></i> Room: <strong>{{ room_name|default:'demo' }}</strong></span>
         <span><i class="fas fa-code-branch"></i> UTF-8</span>
         <span id="char-count"><i class="fas fa-text-height"></i> 0 characters</span>
         <span id="line-count"><i class="fas fa-align-left"></i> 1 line</span>
@@ -703,137 +655,29 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
   <script>
-    // ✅ LANGUAGE CONFIGURATION MAP
     const LANGUAGE_CONFIG = {
-      javascript: { 
-        monacoLang: 'javascript', 
-        pistonLang: 'javascript', 
-        version: '18.15.0',
-        extension: '.js',
-        fileName: 'main.js'
-      },
-      python: { 
-        monacoLang: 'python', 
-        pistonLang: 'python', 
-        version: '3.10.0',
-        extension: '.py',
-        fileName: 'main.py'
-      },
-      java: { 
-        monacoLang: 'java', 
-        pistonLang: 'java', 
-        version: '15.0.2',
-        extension: '.java',
-        fileName: 'Main.java'
-      },
-      cpp: { 
-        monacoLang: 'cpp', 
-        pistonLang: 'cpp', 
-        version: '10.2.0',
-        extension: '.cpp',
-        fileName: 'main.cpp'
-      },
-      c: { 
-        monacoLang: 'c', 
-        pistonLang: 'c', 
-        version: '10.2.0',
-        extension: '.c',
-        fileName: 'main.c'
-      },
-      csharp: { 
-        monacoLang: 'csharp', 
-        pistonLang: 'csharp', 
-        version: '6.12.0',
-        extension: '.cs',
-        fileName: 'main.cs'
-      },
-      typescript: { 
-        monacoLang: 'typescript', 
-        pistonLang: 'typescript', 
-        version: '5.0.3',
-        extension: '.ts',
-        fileName: 'main.ts'
-      },
-      php: { 
-        monacoLang: 'php', 
-        pistonLang: 'php', 
-        version: '8.2.3',
-        extension: '.php',
-        fileName: 'main.php'
-      },
-      ruby: { 
-        monacoLang: 'ruby', 
-        pistonLang: 'ruby', 
-        version: '3.0.1',
-        extension: '.rb',
-        fileName: 'main.rb'
-      },
-      go: { 
-        monacoLang: 'go', 
-        pistonLang: 'go', 
-        version: '1.16.2',
-        extension: '.go',
-        fileName: 'main.go'
-      },
-      rust: { 
-        monacoLang: 'rust', 
-        pistonLang: 'rust', 
-        version: '1.68.2',
-        extension: '.rs',
-        fileName: 'main.rs'
-      },
-      kotlin: { 
-        monacoLang: 'kotlin', 
-        pistonLang: 'kotlin', 
-        version: '1.8.20',
-        extension: '.kt',
-        fileName: 'main.kt'
-      },
-      swift: { 
-        monacoLang: 'swift', 
-        pistonLang: 'swift', 
-        version: '5.3.3',
-        extension: '.swift',
-        fileName: 'main.swift'
-      },
-      r: { 
-        monacoLang: 'r', 
-        pistonLang: 'r', 
-        version: '4.1.1',
-        extension: '.r',
-        fileName: 'main.r'
-      },
-      perl: { 
-        monacoLang: 'perl', 
-        pistonLang: 'perl', 
-        version: '5.36.0',
-        extension: '.pl',
-        fileName: 'main.pl'
-      },
-      lua: { 
-        monacoLang: 'lua', 
-        pistonLang: 'lua', 
-        version: '5.4.4',
-        extension: '.lua',
-        fileName: 'main.lua'
-      },
-      sql: { 
-        monacoLang: 'sql', 
-        pistonLang: 'sql', 
-        version: '3.36.0',
-        extension: '.sql',
-        fileName: 'main.sql'
-      },
-      bash: { 
-        monacoLang: 'shell', 
-        pistonLang: 'bash', 
-        version: '5.2.0',
-        extension: '.sh',
-        fileName: 'main.sh'
-      }
+      javascript: { monacoLang: 'javascript', pistonLang: 'javascript', version: '18.15.0', extension: '.js', fileName: 'main.js' },
+      python: { monacoLang: 'python', pistonLang: 'python', version: '3.10.0', extension: '.py', fileName: 'main.py' },
+      java: { monacoLang: 'java', pistonLang: 'java', version: '15.0.2', extension: '.java', fileName: 'Main.java' },
+      cpp: { monacoLang: 'cpp', pistonLang: 'cpp', version: '10.2.0', extension: '.cpp', fileName: 'main.cpp' },
+      c: { monacoLang: 'c', pistonLang: 'c', version: '10.2.0', extension: '.c', fileName: 'main.c' },
+      csharp: { monacoLang: 'csharp', pistonLang: 'csharp', version: '6.12.0', extension: '.cs', fileName: 'main.cs' },
+      typescript: { monacoLang: 'typescript', pistonLang: 'typescript', version: '5.0.3', extension: '.ts', fileName: 'main.ts' },
+      php: { monacoLang: 'php', pistonLang: 'php', version: '8.2.3', extension: '.php', fileName: 'main.php' },
+      ruby: { monacoLang: 'ruby', pistonLang: 'ruby', version: '3.0.1', extension: '.rb', fileName: 'main.rb' },
+      go: { monacoLang: 'go', pistonLang: 'go', version: '1.16.2', extension: '.go', fileName: 'main.go' },
+      rust: { monacoLang: 'rust', pistonLang: 'rust', version: '1.68.2', extension: '.rs', fileName: 'main.rs' }
     };
 
     let currentLanguage = 'javascript';
+    const currentUsername = "{{ username }}";
+
+    function showNotification(message) {
+      const toast = document.getElementById('notification-toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
 
     function getCookie(name) {
       let cookieValue = null;
@@ -851,44 +695,25 @@
     }
 
     const csrftoken = getCookie('csrftoken');
-
     const logoutModal = document.getElementById('logoutModal');
     const logoutBtn = document.getElementById('logout-btn');
     const modalYesBtn = document.getElementById('modalYesBtn');
     const modalNoBtn = document.getElementById('modalNoBtn');
 
-    logoutBtn.addEventListener('click', function() {
-      logoutModal.classList.add('show');
-    });
-
-    modalNoBtn.addEventListener('click', function() {
-      logoutModal.classList.remove('show');
-    });
-
-    logoutModal.addEventListener('click', function(e) {
-      if (e.target === logoutModal) {
-        logoutModal.classList.remove('show');
-      }
+    logoutBtn.addEventListener('click', () => logoutModal.classList.add('show'));
+    modalNoBtn.addEventListener('click', () => logoutModal.classList.remove('show'));
+    logoutModal.addEventListener('click', (e) => {
+      if (e.target === logoutModal) logoutModal.classList.remove('show');
     });
 
     modalYesBtn.addEventListener('click', function() {
       logoutModal.classList.remove('show');
-      
-      fetch('/editor/api/logout/', {
-        method: 'GET',
-        credentials: 'same-origin'
-      })
-      .then(response => {
-        if (response.redirected) {
-          window.location.href = response.url;
-        } else {
-          window.location.href = '/auth/login/';
-        }
-      })
-      .catch(err => {
-        console.error('Logout error:', err);
-        alert('Something went wrong while logging out.');
-      });
+      fetch('/editor/api/logout/', { method: 'GET', credentials: 'same-origin' })
+        .then(response => window.location.href = response.redirected ? response.url : '/auth/login/')
+        .catch(err => {
+          console.error('Logout error:', err);
+          alert('Something went wrong while logging out.');
+        });
     });
 
     function createParticles() {
@@ -919,6 +744,7 @@
       ws.onopen = function() {
         updateStatus(true);
         clearInterval(reconnectInterval);
+        console.log('✅ WebSocket connected');
       };
 
       ws.onerror = function() {
@@ -955,6 +781,7 @@
     let lastSavedContent = "";
     let saveTimeout;
     let isLoading = false;
+    let isRemoteUpdate = false;
 
     require(["vs/editor/editor.main"], function () {
       document.getElementById('loading').style.display = 'none';
@@ -971,43 +798,44 @@
         padding: { top: 20, bottom: 20 }
       });
 
-      // ✅ LANGUAGE SELECTOR CHANGE EVENT
+      // ✅ LANGUAGE SELECTOR WITH BROADCAST
       const languageSelector = document.getElementById('language-selector');
       languageSelector.addEventListener('change', function() {
         const selectedLang = this.value;
-        currentLanguage = selectedLang;
-        
-        const config = LANGUAGE_CONFIG[selectedLang];
-        
-        // Update Monaco editor language
-        monaco.editor.setModelLanguage(editor.getModel(), config.monacoLang);
-        
-        // Update file name in tab
-        document.getElementById('file-name').textContent = config.fileName;
-        
-        console.log(`Language changed to: ${selectedLang} (${config.fileName})`);
+        changeLanguage(selectedLang, true); // true = initiated by user, broadcast it
       });
+
+      function changeLanguage(lang, broadcast = false) {
+        currentLanguage = lang;
+        const config = LANGUAGE_CONFIG[lang];
+        
+        monaco.editor.setModelLanguage(editor.getModel(), config.monacoLang);
+        document.getElementById('file-name').textContent = config.fileName;
+        languageSelector.value = lang;
+        
+        console.log(`🔄 Language changed to: ${lang}`);
+        
+        if (broadcast && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'language_change',
+            language: lang,
+            username: currentUsername
+          }));
+        }
+      }
 
       async function loadUserCode() {
         try {
           isLoading = true;
-          console.log("Loading saved code from database...");
-          
           const res = await fetch("/editor/api/load_code/");
-          
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-          }
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           
           const data = await res.json();
           const code = data.code || "";
           
           editor.setValue(code);
           lastSavedContent = code;
-          
-          console.log("Code loaded successfully");
           updateSyncStatus('All changes saved');
-          
         } catch (error) {
           console.error("Error loading code:", error);
           updateSyncStatus('Failed to load', true);
@@ -1018,42 +846,24 @@
 
       async function saveUserCode(force = false) {
         const code = editor.getValue();
-        
-        if (!force && code === lastSavedContent) {
-          console.log("No changes to save");
-          return;
-        }
-
-        if (!force && code.trim() === "") {
-          console.log("Skipping save - empty content");
-          return;
-        }
+        if (!force && code === lastSavedContent) return;
+        if (!force && code.trim() === "") return;
 
         try {
-          console.log("Saving to database...");
           updateSyncStatus('Saving...', false, true);
-          
           const res = await fetch("/editor/api/save_code/", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               filename: LANGUAGE_CONFIG[currentLanguage].fileName,
               code: code
             })
           });
 
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-          }
-
-          const data = await res.json();
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          
           lastSavedContent = code;
-          
-          console.log("Saved successfully");
           updateSyncStatus('All changes saved');
-          
         } catch (error) {
           console.error("Save error:", error);
           updateSyncStatus('Save failed', true);
@@ -1063,48 +873,32 @@
       function scheduleAutoSave() {
         clearTimeout(saveTimeout);
         updateSyncStatus('Unsaved changes...', false, true);
-        
-        saveTimeout = setTimeout(() => {
-          saveUserCode(false);
-        }, 1000);
+        saveTimeout = setTimeout(() => saveUserCode(false), 1000);
       }
 
       function updateSyncStatus(message, isError = false, isSyncing = false) {
         const syncIcon = document.getElementById('sync-icon');
         const syncText = document.getElementById('sync-text');
-        
         syncIcon.classList.remove('synced');
-        
-        if (isSyncing) {
-          syncIcon.classList.remove('synced');
-        } else if (!isError) {
-          syncIcon.classList.add('synced');
-        }
-        
+        if (!isSyncing && !isError) syncIcon.classList.add('synced');
         syncText.textContent = message;
         syncText.style.color = isError ? '#ef4444' : '#94a3b8';
       }
 
       loadUserCode();
-
       setInterval(() => {
         const code = editor.getValue();
-        if (code !== lastSavedContent && code.trim() !== "") {
-          saveUserCode(false);
-        }
+        if (code !== lastSavedContent && code.trim() !== "") saveUserCode(false);
       }, 3000);
 
-      let isRemoteUpdate = false;
-
+      // ✅ WEBSOCKET MESSAGE HANDLER WITH BROADCAST SUPPORT
       ws.onmessage = function(event) {
         const data = JSON.parse(event.data);
 
+        // Handle text content updates
         if (data.text !== undefined) {
           const incomingContent = data.text;
-
-          if (incomingContent === editor.getValue()) {
-            return;
-          }
+          if (incomingContent === editor.getValue()) return;
 
           isRemoteUpdate = true;
           const position = editor.getPosition();
@@ -1117,7 +911,20 @@
           saveUserCode(true);
         }
 
-        if (data.cursor && data.username && data.username !== "{{ username }}") {
+        // ✅ Handle language change from other users
+        if (data.type === 'language_change' && data.username !== currentUsername) {
+          changeLanguage(data.language, false); // false = don't broadcast again
+          showNotification(`${data.username} changed language to ${data.language.toUpperCase()}`);
+        }
+
+        // ✅ Handle code execution from other users
+        if (data.type === 'code_execution' && data.username !== currentUsername) {
+          displayRemoteOutput(data);
+          showNotification(`${data.username} ran the code`);
+        }
+
+        // Handle cursor updates
+        if (data.cursor && data.username && data.username !== currentUsername) {
           showRemoteCursor(data.cursor, data.username);
         }
       };
@@ -1127,16 +934,14 @@
           editor.deltaDecorations(window.remoteCursorDecoration, []);
         }
         
-        window.remoteCursorDecoration = editor.deltaDecorations([], [
-          {
-            range: new monaco.Range(cursor.lineNumber, cursor.column, cursor.lineNumber, cursor.column),
-            options: {
-              className: 'remote-cursor',
-              hoverMessage: { value: `${username} is typing…` },
-              afterContentClassName: 'remote-cursor-label-' + username.replace(/\W/g,""),
-            }
+        window.remoteCursorDecoration = editor.deltaDecorations([], [{
+          range: new monaco.Range(cursor.lineNumber, cursor.column, cursor.lineNumber, cursor.column),
+          options: {
+            className: 'remote-cursor',
+            hoverMessage: { value: `${username} is typing…` },
+            afterContentClassName: 'remote-cursor-label-' + username.replace(/\W/g,""),
           }
-        ]);
+        }]);
 
         const css = `
           .monaco-editor .remote-cursor-label-${username.replace(/\W/g,"")}::after {
@@ -1154,18 +959,6 @@
             opacity: 0.95;
             box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
             white-space: nowrap;
-            animation: labelFadeIn 0.3s ease-out;
-          }
-          
-          @keyframes labelFadeIn {
-            from {
-              opacity: 0;
-              transform: translateY(-5px);
-            }
-            to {
-              opacity: 0.95;
-              transform: translateY(0);
-            }
           }
         `;
 
@@ -1177,7 +970,7 @@
         document.head.appendChild(styleTag);
       }
 
-      // ✅ RUN CODE WITH DYNAMIC LANGUAGE SUPPORT
+      // ✅ RUN CODE WITH BROADCAST
       const runBtn = document.getElementById('run-btn');
       const outputPanel = document.getElementById('output-panel');
       const outputContent = document.getElementById('output-content');
@@ -1185,7 +978,6 @@
 
       async function runCode() {
         const code = editor.getValue();
-        
         if (!code || code.trim() === '') {
           outputContent.innerHTML = '<span class="output-error">Error: No code to run</span>';
           outputPanel.classList.add('show');
@@ -1193,7 +985,6 @@
         }
 
         const config = LANGUAGE_CONFIG[currentLanguage];
-
         runBtn.classList.add('running');
         outputPanel.classList.add('show');
         outputContent.innerHTML = `<span style="color: #6366f1;">Running ${currentLanguage}...</span>`;
@@ -1201,16 +992,11 @@
         try {
           const response = await fetch('https://emkc.org/api/v2/piston/execute', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               language: config.pistonLang,
               version: config.version,
-              files: [{
-                name: config.fileName,
-                content: code
-              }]
+              files: [{ name: config.fileName, content: code }]
             })
           });
 
@@ -1222,14 +1008,8 @@
             const exitCode = result.run.code;
 
             let outputHTML = '';
-            
-            if (stderr) {
-              outputHTML += `<span class="output-error">${escapeHtml(stderr)}</span>\n`;
-            }
-            
-            if (output) {
-              outputHTML += `<span>${escapeHtml(output)}</span>\n`;
-            }
+            if (stderr) outputHTML += `<span class="output-error">${escapeHtml(stderr)}</span>\n`;
+            if (output) outputHTML += `<span>${escapeHtml(output)}</span>\n`;
             
             if (exitCode === 0) {
               outputHTML += `<span class="output-success">✓ Exited with code ${exitCode}</span>`;
@@ -1238,16 +1018,31 @@
             }
             
             outputContent.innerHTML = outputHTML || '<span class="output-error">No output</span>';
+
+            // ✅ BROADCAST EXECUTION RESULT TO ALL USERS
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                type: 'code_execution',
+                language: currentLanguage,
+                output: outputHTML,
+                username: currentUsername,
+                exitCode: exitCode
+              }));
+            }
           } else {
             outputContent.innerHTML = '<span class="output-error">Error: Failed to execute code</span>';
           }
-
         } catch (error) {
           console.error('Execution error:', error);
           outputContent.innerHTML = `<span class="output-error">Error: ${escapeHtml(error.message)}</span>`;
         } finally {
           runBtn.classList.remove('running');
         }
+      }
+
+      function displayRemoteOutput(data) {
+        outputPanel.classList.add('show');
+        outputContent.innerHTML = data.output;
       }
 
       function escapeHtml(text) {
@@ -1257,21 +1052,12 @@
       }
 
       runBtn.addEventListener('click', runCode);
-
-      closeOutputBtn.addEventListener('click', function() {
-        outputPanel.classList.remove('show');
-      });
-
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function() {
-        runCode();
-      });
+      closeOutputBtn.addEventListener('click', () => outputPanel.classList.remove('show'));
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
 
       editor.onDidChangeModelContent(function() {
         updateStats();
-        
-        if (isRemoteUpdate || isLoading) {
-          return;
-        }
+        if (isRemoteUpdate || isLoading) return;
 
         if (ws.readyState === WebSocket.OPEN) {
           const content = editor.getValue();
@@ -1279,7 +1065,7 @@
           ws.send(JSON.stringify({
             text: content,
             cursor: position,
-            username: "{{ username }}",
+            username: currentUsername,
           }));
         }
 
@@ -1289,10 +1075,8 @@
       function updateStats() {
         const content = editor.getValue();
         const lines = editor.getModel().getLineCount();
-        document.getElementById('char-count').innerHTML = 
-          `<i class="fas fa-text-height"></i> ${content.length} characters`;
-        document.getElementById('line-count').innerHTML = 
-          `<i class="fas fa-align-left"></i> ${lines} ${lines === 1 ? 'line' : 'lines'}`;
+        document.getElementById('char-count').innerHTML = `<i class="fas fa-text-height"></i> ${content.length} characters`;
+        document.getElementById('line-count').innerHTML = `<i class="fas fa-align-left"></i> ${lines} ${lines === 1 ? 'line' : 'lines'}`;
       }
 
       window.addEventListener('beforeunload', function(e) {
