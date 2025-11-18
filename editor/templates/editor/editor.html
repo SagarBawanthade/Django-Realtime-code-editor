@@ -708,8 +708,11 @@
 
     modalYesBtn.addEventListener('click', function() {
       logoutModal.classList.remove('show');
+      showNotification("Logged out successfully!");
       fetch('/editor/api/logout/', { method: 'GET', credentials: 'same-origin' })
+
         .then(response => window.location.href = response.redirected ? response.url : '/auth/login/')
+        
         .catch(err => {
           console.error('Logout error:', err);
           alert('Something went wrong while logging out.');
