@@ -11,6 +11,7 @@
 
 A real-time collaborative code editor built with Django and WebSockets, enabling multiple developers to code together seamlessly with live syntax highlighting, auto-completion, and integrated communication features.
 
+
 ## Features
 
 - **Real-Time Collaboration** - Multiple users can edit code simultaneously with live cursor tracking
