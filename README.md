@@ -1,7 +1,5 @@
 # Django-Realtime-code-editor
 
-
-
 # Real-Time Code Editor    
 
 ![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)
