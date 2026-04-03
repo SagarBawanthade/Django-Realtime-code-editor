@@ -1,7 +1,5 @@
 
 FROM python:3.11-slim
-
-
 WORKDIR /app
 
 #Adding build-essential for compiling any dependencies
